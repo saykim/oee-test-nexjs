@@ -1,36 +1,211 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 🏭 OEE 관리 시스템
 
-## Getting Started
+설비 종합 효율(Overall Equipment Effectiveness) 실시간 관리 및 분석 시스템
 
-First, run the development server:
+## ✨ 주요 기능
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+### 📊 핵심 기능
+- **CRUD 작업**: 설비 데이터 생성, 조회, 수정, 삭제
+- **자동 계산**: OEE, 가동률, 성능률, 양품률 자동 계산
+- **실시간 통계**: 평균 지표 및 세계 수준 달성률 대시보드
+- **데이터 내보내기**: CSV 및 JSON 형식으로 데이터 내보내기
+- **반응형 디자인**: 모바일, 태블릿, 데스크톱 완벽 지원
+
+### 🎨 UI/UX 기능
+- **Light/Dark 모드**: 사용자 선호에 따른 테마 전환
+- **1-Page 레이아웃**: 모든 기능이 한 화면에 통합
+- **로딩 스켈레톤**: 부드러운 로딩 경험
+- **접근성**: 키보드 네비게이션 및 스크린 리더 지원
+
+## 🎯 OEE란?
+
+**OEE (Overall Equipment Effectiveness)**는 제조 설비의 성능을 측정하는 핵심 지표입니다.
+
+### 계산 공식
+
+```
+OEE = 가동률 × 성능률 × 양품률
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+#### 1. 가동률 (Availability)
+```
+가동률 = (실제 가동 시간 / 계획 생산 시간) × 100
+```
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+#### 2. 성능률 (Performance)
+```
+성능률 = (이상 사이클 타임 × 총 생산량) / (실제 가동 시간 × 60) × 100
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+#### 3. 양품률 (Quality)
+```
+양품률 = (양품 수량 / 총 생산량) × 100
+```
 
-## Learn More
+### 등급 기준
 
-To learn more about Next.js, take a look at the following resources:
+| OEE | 등급 | 설명 |
+|-----|------|------|
+| 85% 이상 | 🟢 세계 수준 | World Class |
+| 60~85% | 🔵 양호 | 개선 여지 있음 |
+| 40~60% | 🟡 보통 | 개선 필요 |
+| 40% 미만 | 🔴 미흡 | 즉시 개선 필요 |
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## 🚀 시작하기
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+### 필수 요구사항
 
-## Deploy on Vercel
+- Node.js 18.0 이상
+- npm 또는 yarn
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+### 설치
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+```bash
+# 의존성 설치
+npm install
+
+# 개발 서버 실행
+npm run dev
+```
+
+브라우저에서 [http://localhost:3000](http://localhost:3000)을 열어 확인하세요.
+
+### 빌드
+
+```bash
+# 프로덕션 빌드
+npm run build
+
+# 프로덕션 서버 실행
+npm start
+```
+
+## 🛠 기술 스택
+
+### Frontend
+- **Next.js 16**: React 프레임워크 (App Router)
+- **React 19**: UI 라이브러리
+- **TypeScript**: 타입 안정성
+
+### 스타일링
+- **Tailwind CSS 4**: 유틸리티 우선 CSS
+- **Shadcn/ui**: 재사용 가능한 컴포넌트
+- **Lucide React**: 아이콘 라이브러리
+
+### 데이터 저장
+- **LocalStorage**: 브라우저 로컬 스토리지 (클라이언트 사이드)
+
+## 📁 프로젝트 구조
+
+```
+oee-test/
+├── app/
+│   ├── layout.tsx          # 루트 레이아웃 (ThemeProvider 포함)
+│   ├── page.tsx            # 메인 페이지
+│   └── globals.css         # 글로벌 스타일
+├── components/
+│   ├── oee-form.tsx        # 데이터 입력 폼
+│   ├── oee-table.tsx       # 데이터 테이블
+│   ├── oee-statistics.tsx  # 통계 대시보드
+│   ├── export-buttons.tsx  # 데이터 내보내기 버튼
+│   ├── theme-provider.tsx  # 테마 컨텍스트
+│   ├── theme-toggle.tsx    # 테마 전환 버튼
+│   └── loading-skeleton.tsx # 로딩 스켈레톤
+├── lib/
+│   ├── types.ts            # TypeScript 타입 정의
+│   ├── oee-calculator.ts   # OEE 계산 로직
+│   ├── validation.ts       # 데이터 유효성 검증
+│   ├── export.ts           # 데이터 내보내기 유틸리티
+│   └── utils.ts            # 공통 유틸리티
+└── package.json
+```
+
+## 💡 사용 방법
+
+### 1. 데이터 등록
+
+1. 상단 폼에서 설비 정보 입력:
+   - 설비명
+   - 날짜
+   - 계획 생산 시간 (분)
+   - 실제 가동 시간 (분)
+   - 이상 사이클 타임 (초/개)
+   - 총 생산량 (개)
+   - 양품 수량 (개)
+
+2. "등록" 버튼 클릭
+
+3. OEE 지표가 자동으로 계산되어 테이블에 표시됨
+
+### 2. 데이터 수정
+
+1. 테이블에서 수정할 행의 ✏️ (연필) 아이콘 클릭
+2. 폼에 기존 데이터가 자동으로 채워짐
+3. 필요한 항목 수정 후 "수정" 버튼 클릭
+
+### 3. 데이터 삭제
+
+1. 테이블에서 삭제할 행의 🗑️ (휴지통) 아이콘 클릭
+2. 확인 대화상자에서 "확인" 클릭
+
+### 4. 데이터 내보내기
+
+1. "데이터 내보내기" 버튼 클릭
+2. CSV 또는 JSON 형식 선택
+3. 파일이 자동으로 다운로드됨
+
+### 5. 테마 전환
+
+- 우측 상단의 🌙/☀️ 아이콘 클릭하여 다크/라이트 모드 전환
+
+## 🔒 데이터 보안
+
+- 모든 데이터는 브라우저의 LocalStorage에 저장됩니다
+- 서버로 데이터가 전송되지 않습니다
+- 브라우저 데이터를 지우면 모든 데이터가 삭제됩니다
+- 정기적으로 데이터를 내보내기하여 백업하는 것을 권장합니다
+
+## 🎨 커스터마이징
+
+### 테마 색상 변경
+
+`app/globals.css` 파일에서 CSS 변수를 수정하여 색상을 변경할 수 있습니다:
+
+```css
+:root {
+  --primary: ...;
+  --secondary: ...;
+  /* 기타 색상 변수 */
+}
+```
+
+### OEE 등급 기준 변경
+
+`lib/oee-calculator.ts` 파일의 `getOEEGrade` 함수에서 기준값을 수정할 수 있습니다.
+
+## 📈 향후 개선 계획
+
+- [ ] 차트 및 그래프 시각화
+- [ ] 데이터 필터링 및 검색
+- [ ] 다국어 지원
+- [ ] 인쇄 기능
+- [ ] 클라우드 동기화 (선택적)
+- [ ] Excel 내보내기 지원
+- [ ] 데이터 비교 및 추세 분석
+
+## 🤝 기여
+
+이슈 및 풀 리퀘스트를 환영합니다!
+
+## 📄 라이선스
+
+MIT License
+
+## 👨‍💻 개발자
+
+OEE 관리 시스템 © 2025
+
+---
+
+**문의사항이나 버그 리포트는 이슈로 등록해주세요.**
+# oee-test-nexjs
