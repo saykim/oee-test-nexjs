@@ -3,6 +3,7 @@
 import * as React from 'react';
 import { OEEFormData, OEEData } from '@/lib/types';
 import { calculateOEE } from '@/lib/oee-calculator';
+import { validateOEEForm, ValidationError } from '@/lib/validation';
 
 interface OEEFormProps {
   onSubmit: (data: OEEData) => void;
@@ -10,47 +11,121 @@ interface OEEFormProps {
   onCancel?: () => void;
 }
 
+type NumericField =
+  | 'plannedProductionTime'
+  | 'actualOperatingTime'
+  | 'idealCycleTime'
+  | 'totalProduced'
+  | 'goodProducts';
+
+type OEEFormState = {
+  equipmentName: string;
+  date: string;
+  [key in NumericField]: number | '';
+};
+
+const numericFields: readonly NumericField[] = [
+  'plannedProductionTime',
+  'actualOperatingTime',
+  'idealCycleTime',
+  'totalProduced',
+  'goodProducts',
+];
+
+const isNumericField = (field: keyof OEEFormState): field is NumericField =>
+  numericFields.includes(field as NumericField);
+
 export function OEEForm({ onSubmit, editData, onCancel }: OEEFormProps) {
-  const [formData, setFormData] = React.useState<OEEFormData>({
+  const [formData, setFormData] = React.useState<OEEFormState>({
     equipmentName: editData?.equipmentName || '',
     date: editData?.date || new Date().toISOString().split('T')[0],
-    plannedProductionTime: editData?.plannedProductionTime || 0,
-    actualOperatingTime: editData?.actualOperatingTime || 0,
-    idealCycleTime: editData?.idealCycleTime || 0,
-    totalProduced: editData?.totalProduced || 0,
-    goodProducts: editData?.goodProducts || 0,
+    plannedProductionTime: editData?.plannedProductionTime ?? '',
+    actualOperatingTime: editData?.actualOperatingTime ?? '',
+    idealCycleTime: editData?.idealCycleTime ?? '',
+    totalProduced: editData?.totalProduced ?? '',
+    goodProducts: editData?.goodProducts ?? '',
   });
+
+  const [errors, setErrors] = React.useState<ValidationError[]>([]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
-    const calculatedData = calculateOEE(formData);
+
+    // 검증 실행
+    const preparedData: OEEFormData = {
+      equipmentName: formData.equipmentName,
+      date: formData.date,
+      plannedProductionTime:
+        typeof formData.plannedProductionTime === 'number'
+          ? formData.plannedProductionTime
+          : 0,
+      actualOperatingTime:
+        typeof formData.actualOperatingTime === 'number'
+          ? formData.actualOperatingTime
+          : 0,
+      idealCycleTime:
+        typeof formData.idealCycleTime === 'number'
+          ? formData.idealCycleTime
+          : 0,
+      totalProduced:
+        typeof formData.totalProduced === 'number' ? formData.totalProduced : 0,
+      goodProducts:
+        typeof formData.goodProducts === 'number' ? formData.goodProducts : 0,
+    };
+
+    const validationErrors = validateOEEForm(preparedData);
+
+    if (validationErrors.length > 0) {
+      setErrors(validationErrors);
+      // 첫 번째 에러 필드로 스크롤
+      const firstErrorField = document.getElementById(validationErrors[0].field);
+      firstErrorField?.focus();
+      return;
+    }
+
+    // 검증 통과 시 에러 초기화
+    setErrors([]);
+
+    const calculatedData = calculateOEE(preparedData);
     const finalData: OEEData = {
       id: editData?.id || Date.now().toString(),
       ...calculatedData,
     };
-    
+
     onSubmit(finalData);
-    
+
     if (!editData) {
       // 신규 등록 시에만 폼 초기화
       setFormData({
         equipmentName: '',
         date: new Date().toISOString().split('T')[0],
-        plannedProductionTime: 0,
-        actualOperatingTime: 0,
-        idealCycleTime: 0,
-        totalProduced: 0,
-        goodProducts: 0,
+        plannedProductionTime: '',
+        actualOperatingTime: '',
+        idealCycleTime: '',
+        totalProduced: '',
+        goodProducts: '',
       });
     }
   };
 
-  const handleChange = (field: keyof OEEFormData, value: string | number) => {
+  const handleChange = (field: keyof OEEFormState, value: string) => {
     setFormData(prev => ({
       ...prev,
-      [field]: value,
+      [field]: isNumericField(field)
+        ? value === ''
+          ? ''
+          : Number(value)
+        : value,
     }));
+    // 입력 시 해당 필드 에러 제거
+    if (errors.length > 0) {
+      setErrors(prev => prev.filter(err => err.field !== field));
+    }
+  };
+
+  // 특정 필드의 에러 메시지 가져오기
+  const getFieldError = (field: string) => {
+    return errors.find(err => err.field === field)?.message;
   };
 
   return (
@@ -81,6 +156,7 @@ export function OEEForm({ onSubmit, editData, onCancel }: OEEFormProps) {
             id="date"
             type="date"
             required
+            max={new Date().toISOString().split('T')[0]}
             value={formData.date}
             onChange={(e) => handleChange('date', e.target.value)}
             className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
@@ -99,9 +175,11 @@ export function OEEForm({ onSubmit, editData, onCancel }: OEEFormProps) {
             min="0"
             step="1"
             value={formData.plannedProductionTime}
-            onChange={(e) => handleChange('plannedProductionTime', parseFloat(e.target.value) || 0)}
+            onChange={(e) => handleChange('plannedProductionTime', e.target.value)}
+            onFocus={(e) => e.target.select()}
+            onClick={(e) => e.currentTarget.select()}
             className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-            placeholder="480"
+            placeholder="480 (1교대 8시간)"
           />
         </div>
 
@@ -117,10 +195,17 @@ export function OEEForm({ onSubmit, editData, onCancel }: OEEFormProps) {
             min="0"
             step="1"
             value={formData.actualOperatingTime}
-            onChange={(e) => handleChange('actualOperatingTime', parseFloat(e.target.value) || 0)}
-            className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-            placeholder="420"
+            onChange={(e) => handleChange('actualOperatingTime', e.target.value)}
+            onFocus={(e) => e.target.select()}
+            onClick={(e) => e.currentTarget.select()}
+            className={`flex h-10 w-full rounded-md border px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 ${
+              getFieldError('actualOperatingTime') ? 'border-red-500 focus-visible:ring-red-500' : 'border-input bg-background'
+            }`}
+            placeholder="420 (정지시간 제외)"
           />
+          {getFieldError('actualOperatingTime') && (
+            <p className="text-sm text-red-500 font-medium">{getFieldError('actualOperatingTime')}</p>
+          )}
         </div>
 
         {/* 이상 사이클 타임 */}
@@ -135,10 +220,15 @@ export function OEEForm({ onSubmit, editData, onCancel }: OEEFormProps) {
             min="0"
             step="0.1"
             value={formData.idealCycleTime}
-            onChange={(e) => handleChange('idealCycleTime', parseFloat(e.target.value) || 0)}
+            onChange={(e) => handleChange('idealCycleTime', e.target.value)}
+            onFocus={(e) => e.target.select()}
+            onClick={(e) => e.currentTarget.select()}
             className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-            placeholder="30"
+            placeholder="1.2"
           />
+          <p className="text-xs text-muted-foreground">
+            💡 설비 최고 성능 시 1개당 소요 시간 (예: 분당 50개 생산 → 60÷50 = 1.2초/개)
+          </p>
         </div>
 
         {/* 총 생산량 */}
@@ -151,11 +241,13 @@ export function OEEForm({ onSubmit, editData, onCancel }: OEEFormProps) {
             type="number"
             required
             min="0"
-            step="1"
+            step="0.1"
             value={formData.totalProduced}
-            onChange={(e) => handleChange('totalProduced', parseFloat(e.target.value) || 0)}
+            onChange={(e) => handleChange('totalProduced', e.target.value)}
+            onFocus={(e) => e.target.select()}
+            onClick={(e) => e.currentTarget.select()}
             className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-            placeholder="800"
+            placeholder="800 (양품+불량 전체)"
           />
         </div>
 
@@ -169,12 +261,19 @@ export function OEEForm({ onSubmit, editData, onCancel }: OEEFormProps) {
             type="number"
             required
             min="0"
-            step="1"
+            step="0.1"
             value={formData.goodProducts}
-            onChange={(e) => handleChange('goodProducts', parseFloat(e.target.value) || 0)}
-            className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-            placeholder="750"
+            onChange={(e) => handleChange('goodProducts', e.target.value)}
+            onFocus={(e) => e.target.select()}
+            onClick={(e) => e.currentTarget.select()}
+            className={`flex h-10 w-full rounded-md border px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 ${
+              getFieldError('goodProducts') ? 'border-red-500 focus-visible:ring-red-500' : 'border-input bg-background'
+            }`}
+            placeholder="750 (불량 제외)"
           />
+          {getFieldError('goodProducts') && (
+            <p className="text-sm text-red-500 font-medium">{getFieldError('goodProducts')}</p>
+          )}
         </div>
       </div>
 
