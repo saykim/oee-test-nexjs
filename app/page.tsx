@@ -175,7 +175,7 @@ export default function Home() {
           <h3 className="text-lg font-semibold mb-3">📖 OEE란?</h3>
           <div className="space-y-3 text-sm text-muted-foreground">
             <p>
-              <strong className="text-foreground">OEE (Overall Equipment Effectiveness)</strong>는 
+              <strong className="text-foreground">OEE (Overall Equipment Effectiveness)</strong>는
               설비 종합 효율로, 제조 설비의 성능을 측정하는 핵심 지표입니다.
             </p>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
@@ -202,6 +202,81 @@ export default function Home() {
                 <li><strong className="text-yellow-600 dark:text-yellow-400">40~60%:</strong> 보통 (개선 필요)</li>
                 <li><strong className="text-red-600 dark:text-red-400">40% 미만:</strong> 미흡 (즉시 개선 필요)</li>
               </ul>
+            </div>
+          </div>
+        </section>
+
+        {/* OEE 계산 프로세스 */}
+        <section className="bg-card rounded-lg border border-border p-6 shadow-sm">
+          <h3 className="text-lg font-semibold mb-3">🔢 OEE 계산 프로세스</h3>
+          <div className="space-y-4 text-sm text-muted-foreground">
+            <p className="text-foreground">
+              이 시스템은 다음과 같은 순서로 OEE를 자동 계산합니다:
+            </p>
+
+            <div className="space-y-3">
+              <div className="flex gap-3">
+                <div className="flex-shrink-0 w-8 h-8 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center text-blue-700 dark:text-blue-300 font-bold text-sm">
+                  1
+                </div>
+                <div className="flex-1">
+                  <h4 className="font-semibold text-foreground mb-1">가동률 계산</h4>
+                  <p className="text-xs">
+                    <code className="bg-muted px-2 py-1 rounded">(실제 가동 시간 ÷ 계획 생산 시간) × 100</code>
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex gap-3">
+                <div className="flex-shrink-0 w-8 h-8 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center text-green-700 dark:text-green-300 font-bold text-sm">
+                  2
+                </div>
+                <div className="flex-1">
+                  <h4 className="font-semibold text-foreground mb-1">성능률 계산</h4>
+                  <p className="text-xs">
+                    <code className="bg-muted px-2 py-1 rounded">((이상 사이클 타임 × 총 생산량) ÷ (실제 가동 시간 × 60)) × 100</code>
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex gap-3">
+                <div className="flex-shrink-0 w-8 h-8 rounded-full bg-orange-100 dark:bg-orange-900/30 flex items-center justify-center text-orange-700 dark:text-orange-300 font-bold text-sm">
+                  3
+                </div>
+                <div className="flex-1">
+                  <h4 className="font-semibold text-foreground mb-1">양품률 계산</h4>
+                  <p className="text-xs">
+                    <code className="bg-muted px-2 py-1 rounded">(양품 수량 ÷ 총 생산량) × 100</code>
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex gap-3">
+                <div className="flex-shrink-0 w-8 h-8 rounded-full bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center text-purple-700 dark:text-purple-300 font-bold text-sm">
+                  4
+                </div>
+                <div className="flex-1">
+                  <h4 className="font-semibold text-foreground mb-1">OEE 최종 계산</h4>
+                  <p className="text-xs mb-2">
+                    <code className="bg-muted px-2 py-1 rounded">(가동률 × 성능률 × 양품률) ÷ 10,000</code>
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    💡 모든 결과는 <strong className="text-foreground">소수 둘째 자리까지 반올림</strong>하여 표시됩니다.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div className="mt-4 p-4 bg-slate-50 dark:bg-slate-900/30 rounded-lg border border-slate-200 dark:border-slate-800">
+              <h4 className="font-semibold text-foreground mb-2 text-sm">📝 계산 예시</h4>
+              <div className="text-xs space-y-1">
+                <p>• 가동률: 87.5%</p>
+                <p>• 성능률: 79.4%</p>
+                <p>• 양품률: 90.0%</p>
+                <p className="pt-2 border-t border-slate-200 dark:border-slate-700">
+                  <strong className="text-foreground">OEE = (87.5 × 79.4 × 90.0) ÷ 10,000 = 62.37%</strong>
+                </p>
+              </div>
             </div>
           </div>
         </section>
