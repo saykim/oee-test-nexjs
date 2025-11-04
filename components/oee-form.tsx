@@ -125,7 +125,7 @@ export function OEEForm({ onSubmit, editData, onCancel }: OEEFormProps) {
             required
             min="0"
             step="1"
-            value={formData.plannedProductionTime || ''}
+            value={formData.plannedProductionTime ?? ''}
             onChange={(e) => handleChange('plannedProductionTime', e.target.value === '' ? 0 : parseFloat(e.target.value))}
             onFocus={(e) => e.target.select()}
             onClick={(e) => e.currentTarget.select()}
@@ -145,7 +145,7 @@ export function OEEForm({ onSubmit, editData, onCancel }: OEEFormProps) {
             required
             min="0"
             step="1"
-            value={formData.actualOperatingTime || ''}
+            value={formData.actualOperatingTime ?? ''}
             onChange={(e) => handleChange('actualOperatingTime', e.target.value === '' ? 0 : parseFloat(e.target.value))}
             onFocus={(e) => e.target.select()}
             onClick={(e) => e.currentTarget.select()}
@@ -170,7 +170,7 @@ export function OEEForm({ onSubmit, editData, onCancel }: OEEFormProps) {
             required
             min="0"
             step="0.1"
-            value={formData.idealCycleTime || ''}
+            value={formData.idealCycleTime ?? ''}
             onChange={(e) => handleChange('idealCycleTime', e.target.value === '' ? 0 : parseFloat(e.target.value))}
             onFocus={(e) => e.target.select()}
             onClick={(e) => e.currentTarget.select()}
@@ -193,7 +193,7 @@ export function OEEForm({ onSubmit, editData, onCancel }: OEEFormProps) {
             required
             min="0"
             step="0.1"
-            value={formData.totalProduced || ''}
+            value={formData.totalProduced ?? ''}
             onChange={(e) => handleChange('totalProduced', e.target.value === '' ? 0 : parseFloat(e.target.value))}
             onFocus={(e) => e.target.select()}
             onClick={(e) => e.currentTarget.select()}
@@ -213,7 +213,7 @@ export function OEEForm({ onSubmit, editData, onCancel }: OEEFormProps) {
             required
             min="0"
             step="0.1"
-            value={formData.goodProducts || ''}
+            value={formData.goodProducts ?? ''}
             onChange={(e) => handleChange('goodProducts', e.target.value === '' ? 0 : parseFloat(e.target.value))}
             onFocus={(e) => e.target.select()}
             onClick={(e) => e.currentTarget.select()}
