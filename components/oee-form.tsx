@@ -12,6 +12,21 @@ interface OEEFormProps {
 }
 
 export function OEEForm({ onSubmit, editData, onCancel }: OEEFormProps) {
+  // 입력 중 빈 문자열을 허용하기 위한 별도 상태
+  const [inputValues, setInputValues] = React.useState<{
+    plannedProductionTime: string;
+    actualOperatingTime: string;
+    idealCycleTime: string;
+    totalProduced: string;
+    goodProducts: string;
+  }>({
+    plannedProductionTime: editData?.plannedProductionTime?.toString() || '',
+    actualOperatingTime: editData?.actualOperatingTime?.toString() || '',
+    idealCycleTime: editData?.idealCycleTime?.toString() || '',
+    totalProduced: editData?.totalProduced?.toString() || '',
+    goodProducts: editData?.goodProducts?.toString() || '',
+  });
+
   const [formData, setFormData] = React.useState<OEEFormData>({
     equipmentName: editData?.equipmentName || '',
     date: editData?.date || new Date().toISOString().split('T')[0],
@@ -24,11 +39,43 @@ export function OEEForm({ onSubmit, editData, onCancel }: OEEFormProps) {
 
   const [errors, setErrors] = React.useState<ValidationError[]>([]);
 
+  // editData가 변경될 때 inputValues 업데이트
+  React.useEffect(() => {
+    if (editData) {
+      setInputValues({
+        plannedProductionTime: editData.plannedProductionTime?.toString() || '',
+        actualOperatingTime: editData.actualOperatingTime?.toString() || '',
+        idealCycleTime: editData.idealCycleTime?.toString() || '',
+        totalProduced: editData.totalProduced?.toString() || '',
+        goodProducts: editData.goodProducts?.toString() || '',
+      });
+      setFormData({
+        equipmentName: editData.equipmentName || '',
+        date: editData.date || new Date().toISOString().split('T')[0],
+        plannedProductionTime: editData.plannedProductionTime || 0,
+        actualOperatingTime: editData.actualOperatingTime || 0,
+        idealCycleTime: editData.idealCycleTime || 0,
+        totalProduced: editData.totalProduced || 0,
+        goodProducts: editData.goodProducts || 0,
+      });
+    }
+  }, [editData]);
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
+    // 제출 전 빈 문자열을 0으로 변환하여 formData 업데이트
+    const finalFormData: OEEFormData = {
+      ...formData,
+      plannedProductionTime: inputValues.plannedProductionTime === '' ? 0 : parseFloat(inputValues.plannedProductionTime) || 0,
+      actualOperatingTime: inputValues.actualOperatingTime === '' ? 0 : parseFloat(inputValues.actualOperatingTime) || 0,
+      idealCycleTime: inputValues.idealCycleTime === '' ? 0 : parseFloat(inputValues.idealCycleTime) || 0,
+      totalProduced: inputValues.totalProduced === '' ? 0 : parseFloat(inputValues.totalProduced) || 0,
+      goodProducts: inputValues.goodProducts === '' ? 0 : parseFloat(inputValues.goodProducts) || 0,
+    };
+
     // 검증 실행
-    const validationErrors = validateOEEForm(formData);
+    const validationErrors = validateOEEForm(finalFormData);
 
     if (validationErrors.length > 0) {
       setErrors(validationErrors);
@@ -41,7 +88,7 @@ export function OEEForm({ onSubmit, editData, onCancel }: OEEFormProps) {
     // 검증 통과 시 에러 초기화
     setErrors([]);
 
-    const calculatedData = calculateOEE(formData);
+    const calculatedData = calculateOEE(finalFormData);
     const finalData: OEEData = {
       id: editData?.id || Date.now().toString(),
       ...calculatedData,
@@ -51,6 +98,13 @@ export function OEEForm({ onSubmit, editData, onCancel }: OEEFormProps) {
 
     if (!editData) {
       // 신규 등록 시에만 폼 초기화
+      setInputValues({
+        plannedProductionTime: '',
+        actualOperatingTime: '',
+        idealCycleTime: '',
+        totalProduced: '',
+        goodProducts: '',
+      });
       setFormData({
         equipmentName: '',
         date: new Date().toISOString().split('T')[0],
@@ -60,6 +114,53 @@ export function OEEForm({ onSubmit, editData, onCancel }: OEEFormProps) {
         totalProduced: 0,
         goodProducts: 0,
       });
+    }
+  };
+
+  // 숫자 입력 필드의 값 변경 처리 (입력 중 빈 문자열 허용)
+  const handleNumberInputChange = (field: 'plannedProductionTime' | 'actualOperatingTime' | 'idealCycleTime' | 'totalProduced' | 'goodProducts', value: string) => {
+    // 입력값을 문자열로 저장 (빈 문자열 허용)
+    setInputValues(prev => ({
+      ...prev,
+      [field]: value,
+    }));
+
+    // 숫자로 변환하여 formData 업데이트 (빈 문자열이면 0)
+    const numValue = value === '' ? 0 : parseFloat(value) || 0;
+    setFormData(prev => ({
+      ...prev,
+      [field]: numValue,
+    }));
+
+    // 입력 시 해당 필드 에러 제거
+    if (errors.length > 0) {
+      setErrors(errors.filter(err => err.field !== field));
+    }
+  };
+
+  // 숫자 입력 필드 blur 처리 (빈 문자열이면 0으로 변환)
+  const handleNumberInputBlur = (field: 'plannedProductionTime' | 'actualOperatingTime' | 'idealCycleTime' | 'totalProduced' | 'goodProducts') => {
+    const currentValue = inputValues[field];
+    if (currentValue === '' || currentValue.trim() === '') {
+      setInputValues(prev => ({
+        ...prev,
+        [field]: '0',
+      }));
+      setFormData(prev => ({
+        ...prev,
+        [field]: 0,
+      }));
+    } else {
+      // 유효한 숫자로 정규화
+      const numValue = parseFloat(currentValue) || 0;
+      setInputValues(prev => ({
+        ...prev,
+        [field]: numValue.toString(),
+      }));
+      setFormData(prev => ({
+        ...prev,
+        [field]: numValue,
+      }));
     }
   };
 
@@ -125,8 +226,9 @@ export function OEEForm({ onSubmit, editData, onCancel }: OEEFormProps) {
             required
             min="0"
             step="1"
-            value={formData.plannedProductionTime ?? ''}
-            onChange={(e) => handleChange('plannedProductionTime', e.target.value === '' ? 0 : parseFloat(e.target.value))}
+            value={inputValues.plannedProductionTime}
+            onChange={(e) => handleNumberInputChange('plannedProductionTime', e.target.value)}
+            onBlur={() => handleNumberInputBlur('plannedProductionTime')}
             onFocus={(e) => e.target.select()}
             onClick={(e) => e.currentTarget.select()}
             className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
@@ -145,8 +247,9 @@ export function OEEForm({ onSubmit, editData, onCancel }: OEEFormProps) {
             required
             min="0"
             step="1"
-            value={formData.actualOperatingTime ?? ''}
-            onChange={(e) => handleChange('actualOperatingTime', e.target.value === '' ? 0 : parseFloat(e.target.value))}
+            value={inputValues.actualOperatingTime}
+            onChange={(e) => handleNumberInputChange('actualOperatingTime', e.target.value)}
+            onBlur={() => handleNumberInputBlur('actualOperatingTime')}
             onFocus={(e) => e.target.select()}
             onClick={(e) => e.currentTarget.select()}
             className={`flex h-10 w-full rounded-md border px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 ${
@@ -170,8 +273,9 @@ export function OEEForm({ onSubmit, editData, onCancel }: OEEFormProps) {
             required
             min="0"
             step="0.1"
-            value={formData.idealCycleTime ?? ''}
-            onChange={(e) => handleChange('idealCycleTime', e.target.value === '' ? 0 : parseFloat(e.target.value))}
+            value={inputValues.idealCycleTime}
+            onChange={(e) => handleNumberInputChange('idealCycleTime', e.target.value)}
+            onBlur={() => handleNumberInputBlur('idealCycleTime')}
             onFocus={(e) => e.target.select()}
             onClick={(e) => e.currentTarget.select()}
             className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
@@ -193,8 +297,9 @@ export function OEEForm({ onSubmit, editData, onCancel }: OEEFormProps) {
             required
             min="0"
             step="0.1"
-            value={formData.totalProduced ?? ''}
-            onChange={(e) => handleChange('totalProduced', e.target.value === '' ? 0 : parseFloat(e.target.value))}
+            value={inputValues.totalProduced}
+            onChange={(e) => handleNumberInputChange('totalProduced', e.target.value)}
+            onBlur={() => handleNumberInputBlur('totalProduced')}
             onFocus={(e) => e.target.select()}
             onClick={(e) => e.currentTarget.select()}
             className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
@@ -213,8 +318,9 @@ export function OEEForm({ onSubmit, editData, onCancel }: OEEFormProps) {
             required
             min="0"
             step="0.1"
-            value={formData.goodProducts ?? ''}
-            onChange={(e) => handleChange('goodProducts', e.target.value === '' ? 0 : parseFloat(e.target.value))}
+            value={inputValues.goodProducts}
+            onChange={(e) => handleNumberInputChange('goodProducts', e.target.value)}
+            onBlur={() => handleNumberInputBlur('goodProducts')}
             onFocus={(e) => e.target.select()}
             onClick={(e) => e.currentTarget.select()}
             className={`flex h-10 w-full rounded-md border px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 ${
