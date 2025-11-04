@@ -3,6 +3,7 @@
 import * as React from 'react';
 import { OEEFormData, OEEData } from '@/lib/types';
 import { calculateOEE } from '@/lib/oee-calculator';
+import { validateOEEForm, ValidationError } from '@/lib/validation';
 
 interface OEEFormProps {
   onSubmit: (data: OEEData) => void;
@@ -21,17 +22,33 @@ export function OEEForm({ onSubmit, editData, onCancel }: OEEFormProps) {
     goodProducts: editData?.goodProducts || 0,
   });
 
+  const [errors, setErrors] = React.useState<ValidationError[]>([]);
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
+
+    // 검증 실행
+    const validationErrors = validateOEEForm(formData);
+
+    if (validationErrors.length > 0) {
+      setErrors(validationErrors);
+      // 첫 번째 에러 필드로 스크롤
+      const firstErrorField = document.getElementById(validationErrors[0].field);
+      firstErrorField?.focus();
+      return;
+    }
+
+    // 검증 통과 시 에러 초기화
+    setErrors([]);
+
     const calculatedData = calculateOEE(formData);
     const finalData: OEEData = {
       id: editData?.id || Date.now().toString(),
       ...calculatedData,
     };
-    
+
     onSubmit(finalData);
-    
+
     if (!editData) {
       // 신규 등록 시에만 폼 초기화
       setFormData({
@@ -51,6 +68,15 @@ export function OEEForm({ onSubmit, editData, onCancel }: OEEFormProps) {
       ...prev,
       [field]: value,
     }));
+    // 입력 시 해당 필드 에러 제거
+    if (errors.length > 0) {
+      setErrors(errors.filter(err => err.field !== field));
+    }
+  };
+
+  // 특정 필드의 에러 메시지 가져오기
+  const getFieldError = (field: string) => {
+    return errors.find(err => err.field === field)?.message;
   };
 
   return (
@@ -81,6 +107,7 @@ export function OEEForm({ onSubmit, editData, onCancel }: OEEFormProps) {
             id="date"
             type="date"
             required
+            max={new Date().toISOString().split('T')[0]}
             value={formData.date}
             onChange={(e) => handleChange('date', e.target.value)}
             className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
@@ -122,9 +149,14 @@ export function OEEForm({ onSubmit, editData, onCancel }: OEEFormProps) {
             onChange={(e) => handleChange('actualOperatingTime', e.target.value === '' ? 0 : parseFloat(e.target.value))}
             onFocus={(e) => e.target.select()}
             onClick={(e) => e.currentTarget.select()}
-            className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+            className={`flex h-10 w-full rounded-md border px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 ${
+              getFieldError('actualOperatingTime') ? 'border-red-500 focus-visible:ring-red-500' : 'border-input bg-background'
+            }`}
             placeholder="420"
           />
+          {getFieldError('actualOperatingTime') && (
+            <p className="text-sm text-red-500 font-medium">{getFieldError('actualOperatingTime')}</p>
+          )}
         </div>
 
         {/* 이상 사이클 타임 */}
@@ -182,9 +214,14 @@ export function OEEForm({ onSubmit, editData, onCancel }: OEEFormProps) {
             onChange={(e) => handleChange('goodProducts', e.target.value === '' ? 0 : parseFloat(e.target.value))}
             onFocus={(e) => e.target.select()}
             onClick={(e) => e.currentTarget.select()}
-            className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+            className={`flex h-10 w-full rounded-md border px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 ${
+              getFieldError('goodProducts') ? 'border-red-500 focus-visible:ring-red-500' : 'border-input bg-background'
+            }`}
             placeholder="750"
           />
+          {getFieldError('goodProducts') && (
+            <p className="text-sm text-red-500 font-medium">{getFieldError('goodProducts')}</p>
+          )}
         </div>
       </div>
 

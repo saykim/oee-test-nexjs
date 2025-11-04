@@ -23,16 +23,18 @@ interface OEEChartProps {
 export function OEEChart({ data }: OEEChartProps) {
   const [chartType, setChartType] = React.useState<'bar' | 'line'>('bar');
 
-  // 차트 데이터 준비
+  // 차트 데이터 준비 (날짜순 정렬)
   const chartData = React.useMemo(() => {
-    return data.map((item) => ({
-      name: `${item.equipmentName}`,
-      date: item.date,
-      OEE: Number(item.oee.toFixed(1)),
-      가동률: Number(item.availability.toFixed(1)),
-      성능률: Number(item.performance.toFixed(1)),
-      양품률: Number(item.quality.toFixed(1)),
-    }));
+    return [...data]
+      .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
+      .map((item) => ({
+        name: `${item.equipmentName}`,
+        date: item.date,
+        OEE: Number(item.oee.toFixed(1)),
+        가동률: Number(item.availability.toFixed(1)),
+        성능률: Number(item.performance.toFixed(1)),
+        양품률: Number(item.quality.toFixed(1)),
+      }));
   }, [data]);
 
   if (data.length === 0) {

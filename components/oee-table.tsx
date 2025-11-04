@@ -21,6 +21,11 @@ export function OEETable({ data, onEdit, onDelete }: OEETableProps) {
     );
   }
 
+  // 최신 날짜 우선 정렬 (내림차순)
+  const sortedData = [...data].sort((a, b) =>
+    new Date(b.date).getTime() - new Date(a.date).getTime()
+  );
+
   return (
     <div className="bg-card rounded-lg border border-border shadow-sm overflow-hidden">
       <div className="overflow-x-auto">
@@ -54,7 +59,7 @@ export function OEETable({ data, onEdit, onDelete }: OEETableProps) {
             </tr>
           </thead>
           <tbody className="divide-y divide-border">
-            {data.map((item) => {
+            {sortedData.map((item) => {
               const grade = getOEEGrade(item.oee);
               return (
                 <tr key={item.id} className="hover:bg-muted/30 transition-colors">
