@@ -7,6 +7,7 @@ import { loadOEEData, saveOEEData } from '@/lib/oee-calculator';
 import { OEEForm } from '@/components/oee-form';
 import { OEETable } from '@/components/oee-table';
 import { OEEStatistics } from '@/components/oee-statistics';
+import { OEEChart } from '@/components/oee-chart';
 import { ThemeToggle } from '@/components/theme-toggle';
 import { LoadingSkeleton } from '@/components/loading-skeleton';
 import { ExportButtons } from '@/components/export-buttons';
@@ -118,6 +119,11 @@ export default function Home() {
         <section>
           <h2 className="text-xl font-semibold mb-4">📊 통계 대시보드</h2>
           <OEEStatistics data={oeeData} />
+        </section>
+
+        {/* OEE 차트 */}
+        <section>
+          <OEEChart data={oeeData} />
         </section>
 
         {/* 데이터 입력 폼 */}
