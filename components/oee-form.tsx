@@ -130,7 +130,7 @@ export function OEEForm({ onSubmit, editData, onCancel }: OEEFormProps) {
             onFocus={(e) => e.target.select()}
             onClick={(e) => e.currentTarget.select()}
             className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-            placeholder="480"
+            placeholder="480 (1교대 8시간)"
           />
         </div>
 
@@ -152,7 +152,7 @@ export function OEEForm({ onSubmit, editData, onCancel }: OEEFormProps) {
             className={`flex h-10 w-full rounded-md border px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 ${
               getFieldError('actualOperatingTime') ? 'border-red-500 focus-visible:ring-red-500' : 'border-input bg-background'
             }`}
-            placeholder="420"
+            placeholder="420 (정지시간 제외)"
           />
           {getFieldError('actualOperatingTime') && (
             <p className="text-sm text-red-500 font-medium">{getFieldError('actualOperatingTime')}</p>
@@ -175,8 +175,11 @@ export function OEEForm({ onSubmit, editData, onCancel }: OEEFormProps) {
             onFocus={(e) => e.target.select()}
             onClick={(e) => e.currentTarget.select()}
             className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-            placeholder="30"
+            placeholder="1.2"
           />
+          <p className="text-xs text-muted-foreground">
+            💡 설비 최고 성능 시 1개당 소요 시간 (예: 분당 50개 생산 → 60÷50 = 1.2초/개)
+          </p>
         </div>
 
         {/* 총 생산량 */}
@@ -195,7 +198,7 @@ export function OEEForm({ onSubmit, editData, onCancel }: OEEFormProps) {
             onFocus={(e) => e.target.select()}
             onClick={(e) => e.currentTarget.select()}
             className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-            placeholder="800"
+            placeholder="800 (양품+불량 전체)"
           />
         </div>
 
@@ -217,7 +220,7 @@ export function OEEForm({ onSubmit, editData, onCancel }: OEEFormProps) {
             className={`flex h-10 w-full rounded-md border px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 ${
               getFieldError('goodProducts') ? 'border-red-500 focus-visible:ring-red-500' : 'border-input bg-background'
             }`}
-            placeholder="750"
+            placeholder="750 (불량 제외)"
           />
           {getFieldError('goodProducts') && (
             <p className="text-sm text-red-500 font-medium">{getFieldError('goodProducts')}</p>
